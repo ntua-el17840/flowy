@@ -47,6 +47,7 @@
   "manifest": {
     "host_permissions": [
       "https://*/*",
+      "http://*/*",
       "https://clients1.google.com/*",
       "https://ac.duckduckgo.com/*",
       "https://api.bing.com/*"

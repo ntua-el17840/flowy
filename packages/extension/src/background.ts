@@ -22,7 +22,7 @@ async function sendMessageToActiveTab(message: any) {
   }
 }
 
-// Listen for command shortcuts
+// Optional: Keep Chrome commands API as fallback for users who prefer to set them manually
 if (chrome.commands && chrome.commands.onCommand) {
   chrome.commands.onCommand.addListener((command) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -73,6 +73,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Initialize when the extension starts
 initialize().catch(console.error)
 
-console.log('Background script loaded')
+console.log('Flowy background script loaded with automatic shortcuts')
 
 export {} 

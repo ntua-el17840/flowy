@@ -1,17 +1,12 @@
 import { useEffect, useState } from 'react';
 import './styles.css';
-import { CommandPalette } from "./components/CommandPalette";
-import { ColorPicker } from "./components/ColorPicker";
 import { WebSearchPalette } from "./components/WebSearchPalette";
 import { ToolFinderPalette } from "./components/ToolFinderPalette";
 import { Action } from "./types/action";
 import { db } from "./lib/db";
-import { SEARCH_ENGINES } from "./types/settings";
 
 export const Popup = () => {
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [palette, setPalette] = useState<null | 'web' | 'tool'>('web'); // Default to web search
+  const [activeTab, setActiveTab] = useState<'search' | 'tools'>('search');
   const [actions, setActions] = useState<Action[]>([]);
   const [defaultEngine, setDefaultEngine] = useState("google");
 
@@ -19,10 +14,10 @@ export const Popup = () => {
     // Listen for messages from background
     const handler = (msg: any) => {
       if (msg.type === 'OPEN_WEB_SEARCH') {
-        setPalette('web');
+        setActiveTab('search');
       }
       if (msg.type === 'OPEN_TOOL_FINDER') {
-        setPalette('tool');
+        setActiveTab('tools');
       }
     };
     chrome.runtime.onMessage.addListener(handler);
@@ -38,99 +33,78 @@ export const Popup = () => {
     });
   }, []);
 
-  const handleColorSelect = (color: string) => {
-    setSelectedColor(color);
-    setShowColorPicker(false);
-    // TODO: Copy to clipboard or show in a more prominent way
-  };
-
-  const handleToolAction = (action: Action) => {
-    // Handle tool execution
-    console.log('Executing tool:', action.name);
-    setPalette(null);
-  };
-
-  // Header component with navigation
-  const renderHeader = () => (
-    <div className="flex items-center justify-between p-4 border-b" style={{ 
-      backgroundColor: '#1e293b', 
-      borderColor: '#334155' 
-    }}>
-      <h2 className="text-lg font-semibold" style={{ color: '#f1f5f9' }}>
-        Flowy
-      </h2>
-      <div className="flex gap-2">
-        <button
-          onClick={() => setPalette('web')}
-          className={`px-3 py-1 rounded text-sm transition-colors ${
-            palette === 'web' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          Search
-        </button>
-        <button
-          onClick={() => setPalette('tool')}
-          className={`px-3 py-1 rounded text-sm transition-colors ${
-            palette === 'tool' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          Tools
-        </button>
-        <button
-          onClick={() => setShowColorPicker(true)}
-          className="px-3 py-1 rounded text-sm text-gray-400 hover:text-white transition-colors"
-        >
-          Colors
-        </button>
-      </div>
-    </div>
-  );
-
   return (
-    <div className="w-96 bg-slate-800" style={{ backgroundColor: '#0f172a', minHeight: '400px' }}>
-      {showColorPicker ? (
-        <ColorPicker
-          onColorSelect={handleColorSelect}
-          onClose={() => setShowColorPicker(false)}
-        />
-      ) : (
-        <>
-          {renderHeader()}
-          <div className="p-4">
-            {palette === 'web' ? (
-              <WebSearchPalette
-                onClose={() => setPalette('web')} // Keep it open in popup mode
-                defaultEngine={defaultEngine}
-                isPopup={true}
-              />
-            ) : palette === 'tool' ? (
-              <ToolFinderPalette
-                onClose={() => setPalette('web')} // Return to web search
-                actions={actions}
-                isPopup={true}
-              />
-            ) : (
-              <WebSearchPalette
-                onClose={() => setPalette('web')}
-                defaultEngine={defaultEngine}
-                isPopup={true}
-              />
-            )}
-          </div>
-          <div className="p-4 border-t text-xs text-gray-500" style={{ 
-            borderColor: '#334155',
-            backgroundColor: '#1e293b'
-          }}>
-            <div className="flex justify-between items-center">
-              <span>Keyboard shortcuts:</span>
-              <div className="space-x-2">
-                <kbd className="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+Space</kbd>
-                <kbd className="px-2 py-1 bg-gray-700 rounded text-xs">Ctrl+Shift+Space</kbd>
-              </div>
+    <div className="popup-container" style={{ 
+      width: '400px', 
+      backgroundColor: '#0f172a',
+      color: '#f1f5f9',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* Header Navigation */}
+      <div className="border-b border-slate-700 bg-slate-900">
+        <div className="flex">
+          <button
+            onClick={() => setActiveTab('search')}
+            className={`flex-1 py-3 px-4 text-sm font-medium transition-colors duration-200 ${
+              activeTab === 'search' 
+                ? 'bg-blue-600 text-white border-b-2 border-blue-400' 
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            Search
+          </button>
+          <button
+            onClick={() => setActiveTab('tools')}
+            className={`flex-1 py-3 px-4 text-sm font-medium transition-colors duration-200 ${
+              activeTab === 'tools' 
+                ? 'bg-blue-600 text-white border-b-2 border-blue-400' 
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            Tools
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 flex-1">
+        {activeTab === 'search' && (
+          <WebSearchPalette
+            onClose={() => {}}
+            defaultEngine={defaultEngine}
+            isPopup={true}
+          />
+        )}
+        
+        {activeTab === 'tools' && (
+          <ToolFinderPalette
+            onClose={() => {}}
+            actions={actions}
+            isPopup={true}
+          />
+        )}
+      </div>
+
+      {/* Footer with shortcut info */}
+      <div className="p-3 border-t border-slate-700 bg-slate-900">
+        <div className="text-center">
+          <p className="text-xs text-slate-400 mb-2">Keyboard Shortcuts:</p>
+          <div className="flex justify-center space-x-4 text-xs">
+            <div className="flex items-center space-x-1">
+              <code className="bg-slate-700 px-2 py-1 rounded">Ctrl+Space</code>
+              <span className="text-slate-500">Web Search</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <code className="bg-slate-700 px-2 py-1 rounded">Ctrl+Shift+Space</code>
+              <span className="text-slate-500">Tools</span>
             </div>
           </div>
-        </>
-      )}
+          <p className="text-xs text-slate-500 mt-2">
+            ✨ Shortcuts work automatically on any webpage
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

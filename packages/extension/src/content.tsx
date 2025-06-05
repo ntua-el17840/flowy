@@ -31,6 +31,59 @@ const ContentApp = () => {
     }
   }, [])
 
+  // Global keyboard event handler for shortcuts
+  useEffect(() => {
+    const handleGlobalKeydown = (e: KeyboardEvent) => {
+      // Skip if we're in an input field, textarea, or contenteditable element
+      const target = e.target as HTMLElement
+      if (target && (
+        target.tagName === 'INPUT' || 
+        target.tagName === 'TEXTAREA' || 
+        target.contentEditable === 'true' ||
+        target.closest('[contenteditable="true"]')
+      )) {
+        // Allow shortcuts in search input fields
+        const isSearchInput = target.type === 'search' || 
+                             target.placeholder?.toLowerCase().includes('search') ||
+                             target.id?.toLowerCase().includes('search') ||
+                             target.className?.toLowerCase().includes('search')
+        
+        if (!isSearchInput) {
+          return
+        }
+      }
+
+      // Ctrl+Space for web search
+      if (e.ctrlKey && e.code === 'Space' && !e.shiftKey && !e.altKey && !e.metaKey) {
+        e.preventDefault()
+        e.stopPropagation()
+        console.log('Ctrl+Space detected - opening web search')
+        setPalette('web')
+        return
+      }
+      
+      // Ctrl+Shift+Space for tool finder
+      if (e.ctrlKey && e.shiftKey && e.code === 'Space' && !e.altKey && !e.metaKey) {
+        e.preventDefault()
+        e.stopPropagation()
+        console.log('Ctrl+Shift+Space detected - opening tool finder')
+        setPalette('tool')
+        return
+      }
+    }
+
+    // Add event listener to document with capture=true to catch it early
+    document.addEventListener('keydown', handleGlobalKeydown, true)
+    
+    // Also listen on window for better compatibility with special pages
+    window.addEventListener('keydown', handleGlobalKeydown, true)
+    
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeydown, true)
+      window.removeEventListener('keydown', handleGlobalKeydown, true)
+    }
+  }, [])
+
   const handleMessage = useCallback((message: any) => {
     try {
       console.log('Content script received message:', message)
@@ -107,46 +160,57 @@ const ContentApp = () => {
   )
 }
 
-// Create overlay container with better styling
-const createOverlay = () => {
-  const overlay = document.createElement('div')
-  overlay.id = 'flowy-overlay'
-  overlay.style.cssText = `
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: 2147483647 !important;
-    pointer-events: none !important;
-    display: none !important;
-    font-family: system-ui, -apple-system, sans-serif !important;
-  `
-  
-  document.body.appendChild(overlay)
-  return overlay
-}
+// Function to safely create and inject the overlay
+const initializeFlowyOverlay = () => {
+  try {
+    // Check if overlay already exists
+    if (document.getElementById('flowy-overlay')) {
+      console.log('Flowy overlay already exists')
+      return
+    }
 
-// Initialize content script
-const init = () => {
-  // Check if already initialized
-  if (document.getElementById('flowy-overlay')) {
-    return
+    // Create overlay container
+    const overlay = document.createElement('div')
+    overlay.id = 'flowy-overlay'
+    overlay.style.cssText = `
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 2147483647 !important;
+      pointer-events: none !important;
+      display: none !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    `
+
+    // Try to inject into the best possible location
+    const targetElement = document.documentElement || document.body || document.head
+    if (targetElement) {
+      targetElement.appendChild(overlay)
+      
+      // Create React root and render
+      const root = createRoot(overlay)
+      root.render(<ContentApp />)
+      
+      console.log('Flowy content script loaded with global keyboard shortcuts on:', window.location.href)
+    } else {
+      console.warn('Could not find suitable element to inject Flowy overlay')
+    }
+  } catch (error) {
+    console.error('Error initializing Flowy overlay:', error)
   }
-
-  const overlay = createOverlay()
-  const root = createRoot(overlay)
-  root.render(<ContentApp />)
-  
-  console.log('Flowy content script initialized')
 }
 
-// Wait for DOM to be ready
+// Initialize when DOM is ready or immediately if already ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init)
+  document.addEventListener('DOMContentLoaded', initializeFlowyOverlay)
 } else {
-  init()
+  // Use setTimeout to avoid blocking the main thread
+  setTimeout(initializeFlowyOverlay, 0)
 }
 
-// Default export for Plasmo
-export default ContentApp 
+// Also try to initialize after a short delay to catch dynamic content
+setTimeout(initializeFlowyOverlay, 1000)
+
+export {} 
