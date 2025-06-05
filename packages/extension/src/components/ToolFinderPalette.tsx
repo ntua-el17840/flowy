@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { CommandPalette } from "./CommandPalette"
 import { Action } from "../types/action"
 import Fuse from "fuse.js"
@@ -7,6 +7,7 @@ interface ToolFinderPaletteProps {
   onClose: () => void
   actions: Action[]
   isPopup?: boolean
+  onToolSelect?: (toolId: string) => void
 }
 
 // Default tools list
@@ -93,16 +94,15 @@ const DEFAULT_TOOLS: Action[] = [
   }
 ]
 
-export const ToolFinderPalette = ({ onClose, actions, isPopup = false }: ToolFinderPaletteProps) => {
+export const ToolFinderPalette = ({ onClose, actions, isPopup = false, onToolSelect }: ToolFinderPaletteProps) => {
   const [query, setQuery] = useState("")
   const [filteredTools, setFilteredTools] = useState<Action[]>([])
-  const [selectedIndex, setSelectedIndex] = useState(0)
   
-  // Use actions from props or default tools if empty
-  const allTools = actions.length > 0 ? actions : DEFAULT_TOOLS
-
-  // Sort tools alphabetically by name
-  const sortedTools = [...allTools].sort((a, b) => a.name.localeCompare(b.name))
+  // Use actions from props or default tools if empty and sort them
+  const sortedTools = useMemo(() => {
+    const allTools = actions.length > 0 ? actions : DEFAULT_TOOLS
+    return [...allTools].sort((a, b) => a.name.localeCompare(b.name))
+  }, [actions])
 
   useEffect(() => {
     if (query.trim()) {
@@ -116,10 +116,17 @@ export const ToolFinderPalette = ({ onClose, actions, isPopup = false }: ToolFin
     } else {
       setFilteredTools(sortedTools)
     }
-  }, [query, allTools])
+  }, [query, sortedTools])
 
   const handleSelect = useCallback(async (action: Action) => {
     try {
+      // If we're in popup mode and onToolSelect is provided, use it
+      if (isPopup && onToolSelect) {
+        onToolSelect(action.id)
+        return
+      }
+      
+      // Otherwise, execute the handler as before
       if (typeof action.handler === 'function') {
         await action.handler()
       } else {
@@ -129,7 +136,7 @@ export const ToolFinderPalette = ({ onClose, actions, isPopup = false }: ToolFin
     } catch (error) {
       console.error(`Error executing action ${action.name}:`, error)
     }
-  }, [onClose])
+  }, [onClose, isPopup, onToolSelect])
 
   // For popup version, render a custom interface
   if (isPopup) {

@@ -379,11 +379,7 @@ export const CommandPalette = ({
             <div className="px-4 py-3" style={{ color: '#64748b', fontSize: '14px' }}>
               Press Enter to search for "{query}"
             </div>
-          ) : (
-            <div className="px-4 py-3" style={{ color: '#64748b', fontSize: '14px' }}>
-              {mode === "web" ? "Type to search..." : "No results found"}
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
     )
@@ -416,7 +412,7 @@ export const CommandPalette = ({
           position: 'absolute',
           top: 0,
           left: 0,
-          minWidth: '580px',
+          minWidth: '520px',
           maxWidth: '600px'
         }}
       >
@@ -453,7 +449,7 @@ export const CommandPalette = ({
         </div>
 
         <div className="flex-1 flex flex-col">
-          <div className="p-4">
+          <div className="p-2">
             <input
               ref={inputRef}
               type="text"
@@ -463,11 +459,11 @@ export const CommandPalette = ({
               placeholder={placeholder}
               autoFocus
               tabIndex={1}
-              className="w-full px-4 py-3 text-lg border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 text-lg border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               style={{
                 backgroundColor: '#374151',
                 color: '#f1f5f9',
-                fontSize: '18px',
+                fontSize: '16px',
                 fontWeight: '400'
               }}
             />
@@ -477,11 +473,11 @@ export const CommandPalette = ({
             results.map((item, index) => (
               <div
                 key={item.id}
-                className="px-4 py-2 cursor-pointer transition-colors duration-150"
+                className="px-3 py-1.5 cursor-pointer transition-colors duration-150"
                 style={{
                   backgroundColor: index === selectedIndex ? '#3b82f6' : 'transparent',
                   color: index === selectedIndex ? '#ffffff' : '#cbd5e1',
-                  fontSize: '16px'
+                  fontSize: '14px'
                 }}
                 onMouseEnter={() => setSelectedIndex(index)}
                 onClick={() => onSelect(item)}
@@ -490,7 +486,7 @@ export const CommandPalette = ({
               </div>
             ))
           ) : query.trim() && mode === "web" ? (
-            <div className="px-4 py-2" style={{ color: '#64748b', fontSize: '14px' }}>
+            <div className="px-3 py-1.5" style={{ color: '#64748b', fontSize: '14px' }}>
               Press Enter to search for "{query}"
             </div>
           ) : null}

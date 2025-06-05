@@ -1,6 +1,7 @@
 export interface Action {
   id: string
   name: string
+  description?: string
   handler: () => void | Promise<void>
   shortcut: string
   tags: string[]

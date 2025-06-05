@@ -11,6 +11,8 @@ const ContentApp = () => {
   const [actions, setActions] = useState<Action[]>([])
   const [defaultEngine, setDefaultEngine] = useState('google')
 
+  console.log('ContentApp rendering with palette:', palette)
+
   useEffect(() => {
     // Load actions for tool finder with error handling
     db.actions.toArray().then(setActions).catch((error) => {
@@ -142,6 +144,8 @@ const ContentApp = () => {
 
   if (!palette) return null
 
+  console.log('About to render palette:', palette, { WebSearchPalette, ToolFinderPalette })
+
   return (
     <>
       {palette === 'web' && (
@@ -191,7 +195,11 @@ const initializeFlowyOverlay = () => {
       
       // Create React root and render
       const root = createRoot(overlay)
-      root.render(<ContentApp />)
+      try {
+        root.render(<ContentApp />)
+      } catch (error) {
+        console.error('Error rendering ContentApp:', error)
+      }
       
       console.log('Flowy content script loaded with global keyboard shortcuts on:', window.location.href)
     } else {
