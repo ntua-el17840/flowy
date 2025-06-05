@@ -199,6 +199,59 @@
 - Background script handles OPEN_TAB messages and creates tabs
 - Added error handling for failed message sending
 
+#### Chrome Action OpenPopup API Availability
+**Issue**: `chrome.action.openPopup()` appeared to be restricted to policy-installed extensions  
+**Solution**: API is now officially available in Chrome 127+ without restrictions  
+**Date**: December 2024  
+**Files**: `background.ts`  
+**Details**: 
+- API became available in Chrome 127 (July 2024) for all extensions
+- No longer requires policy installation or experimental flags
+- Must handle specific error cases like "Browser window has no toolbar"
+- Requires proper error handling and fallback strategies
+
+#### Chrome Action OpenPopup "Browser Window Has No Toolbar" Error
+**Issue**: `chrome.action.openPopup()` fails with "Browser window has no toolbar" error even on normal windows  
+**Solution**: API is available in Chrome 127+ but requires proper browser window with toolbar state  
+**Date**: December 2024  
+**Files**: `background.ts`  
+**Key Discovery**: The API IS available without restrictions in Chrome 127+, confirmed by Google Chrome team  
+**Details**: 
+- API became available in Chrome 127 (July 2024) for all extensions without policy requirements
+- Error "Browser window has no toolbar" indicates the current window doesn't meet toolbar requirements
+- Solution: Check window type and create new normal browser window if needed
+- Use `chrome.windows.create({ type: 'normal', state: 'normal' })` to ensure proper toolbar
+- Wait for window initialization before calling `chrome.action.openPopup({ windowId: newWindow.id })`
+- Fallback: Create maximized window or open popup.html directly in new window
+- This is NOT a permanent limitation - it's a window state requirement that can be solved
+
+#### Tool Selection to Extension Popup Navigation
+**Issue**: When selecting a tool from Ctrl+Shift+Space palette, user wanted it to open the extension popup with that tool already selected  
+**Solution**: Implement cross-context communication using storage and popup navigation  
+**Date**: Current implementation  
+**Files**: `ToolFinderPalette.tsx`, `background.ts`, `popup.tsx`  
+**Details**: 
+- ToolFinderPalette sends `{type: 'OPEN_POPUP_WITH_TOOL', toolId: action.id}` message to background
+- Background script stores toolId in chrome.storage.local and attempts chrome.action.openPopup()
+- Popup component checks for stored toolId on mount using `GET_SELECTED_TOOL` message
+- If toolId found, popup automatically navigates to Tools tab and selects the tool
+- Background clears stored toolId after retrieval to prevent persistence
+- Fallback handling when chrome.action.openPopup() fails (user interaction required)
+- Fixed TypeScript linter errors by using type-only imports for Action and SearchEngine types
+
+#### React Component Undefined Error in Content Script
+**Issue**: "Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined" error in content script  
+**Solution**: Use type-only imports for TypeScript types across all components  
+**Date**: Current implementation  
+**Files**: `content.tsx`, `WebSearchPalette.tsx`, `popup.tsx`, `ToolFinderPalette.tsx`  
+**Details**: 
+- Error occurs when TypeScript types are imported as regular imports instead of type-only imports
+- Changed `import { Action }` to `import type { Action }` in content.tsx
+- Changed `import { SearchEngine } from 'types'` to `import type { SearchEngine }` in WebSearchPalette.tsx
+- Pattern: Use `import type { TypeName }` for TypeScript interfaces and types
+- Use regular `import { ComponentName }` for React components and functions
+- After making changes, rebuild extension with `pnpm run build` and reload in browser
+
 #### Command Palette Layout Optimization
 **Issue**: Search box needed to be more compact and take full available width  
 **Solution**: Optimize padding, font sizes, and layout spacing for slimmer appearance  

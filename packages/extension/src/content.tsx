@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { createRoot } from 'react-dom/client'
 import { WebSearchPalette } from './components/WebSearchPalette'
 import { ToolFinderPalette } from './components/ToolFinderPalette'
-import { Action } from './types/action'
+import type { Action } from './types/action'
 import { db } from './lib/db'
 import './styles.css'
 
@@ -143,8 +143,6 @@ const ContentApp = () => {
   }, [])
 
   if (!palette) return null
-
-  console.log('About to render palette:', palette, { WebSearchPalette, ToolFinderPalette })
 
   return (
     <>

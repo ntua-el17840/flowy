@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { CommandPalette } from "./CommandPalette"
 import { fetchSearchSuggestions, getSearchUrl, SearchSuggestion } from "../lib/services/search"
-import { SearchEngine } from "../types/settings"
+import type { SearchEngine } from "../types/settings"
 
 interface WebSearchPaletteProps {
   onClose: () => void

@@ -126,7 +126,38 @@ export const ToolFinderPalette = ({ onClose, actions, isPopup = false, onToolSel
         return
       }
       
-      // Otherwise, execute the handler as before
+      // For content script mode (Ctrl+Shift+Space), open extension popup with the selected tool
+      if (!isPopup) {
+        console.log(`✅ Tool selected: ${action.name} (ID: ${action.id})`)
+        
+        // Try to store the selection and open popup
+        try {
+          // First store the tool selection
+          if (chrome?.storage?.local) {
+            await chrome.storage.local.set({ selectedToolId: action.id })
+            console.log('🎯 Tool selection stored successfully')
+          }
+          
+          // Then try to send message to background to open popup
+          if (chrome?.runtime?.sendMessage) {
+            await chrome.runtime.sendMessage({
+              type: 'OPEN_POPUP_WITH_TOOL',
+              toolId: action.id
+            })
+            console.log('📬 Message sent to background script')
+          } else {
+            console.log('👆 Chrome runtime unavailable. Please click the extension icon to access the tool!')
+          }
+        } catch (error) {
+          console.error('Error with popup opening:', error)
+          console.log('👆 Click the extension icon to access this tool!')
+        }
+        
+        onClose()
+        return
+      }
+      
+      // Fallback: execute the handler as before
       if (typeof action.handler === 'function') {
         await action.handler()
       } else {

@@ -3,14 +3,15 @@ import './styles.css';
 import { WebSearchPalette } from "./components/WebSearchPalette";
 import { ToolFinderPalette } from "./components/ToolFinderPalette";
 import { ColorPicker } from "./components/ColorPicker";
-import { Action } from "./types/action";
+import type { Action } from "./types/action";
+import type { SearchEngine } from "./types/settings";
 import { db } from "./lib/db";
 
 export const Popup = () => {
   const [activeTab, setActiveTab] = useState<'search' | 'tools'>('search');
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [actions, setActions] = useState<Action[]>([]);
-  const [defaultEngine, setDefaultEngine] = useState("google");
+  const [defaultEngine, setDefaultEngine] = useState<SearchEngine>("google");
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,6 +34,16 @@ export const Popup = () => {
     // Load default search engine
     chrome.storage.sync.get(['settings'], (result) => {
       setDefaultEngine(result.settings?.defaultSearchEngine || 'google');
+    });
+  }, []);
+
+  useEffect(() => {
+    // Check if we should open with a specific tool selected
+    chrome.runtime.sendMessage({ type: 'GET_SELECTED_TOOL' }, (response) => {
+      if (response && response.toolId) {
+        setActiveTab('tools');
+        setActiveTool(response.toolId);
+      }
     });
   }, []);
 

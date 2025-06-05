@@ -66,6 +66,59 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'OPEN_TAB':
       chrome.tabs.create({ url: message.url })
       break
+    case 'OPEN_POPUP_WITH_TOOL':
+      console.log('🔔 Background received OPEN_POPUP_WITH_TOOL message for tool:', message.toolId)
+      
+      // Store the selected tool ID for the popup to retrieve
+      chrome.storage.local.set({ selectedToolId: message.toolId })
+        .then(async () => {
+          console.log('💾 Tool ID stored in local storage')
+          
+          try {
+            // Try chrome.action.openPopup() without parameters first
+            // This lets Chrome automatically handle window selection
+            console.log('🚀 Attempting chrome.action.openPopup() without parameters...')
+            await chrome.action.openPopup()
+            console.log('🎉 SUCCESS! Extension popup opened automatically!')
+            
+          } catch (error) {
+            console.error('❌ chrome.action.openPopup() failed:', error.message)
+            
+            // Only if the basic API fails, try with current window
+            if (error.message.includes('toolbar')) {
+              console.log('🔧 Toolbar error detected, trying with current window ID...')
+              
+              try {
+                const currentWindow = await chrome.windows.getCurrent()
+                await chrome.action.openPopup({ windowId: currentWindow.id })
+                console.log('🎉 SUCCESS! Extension popup opened with current window ID!')
+                
+              } catch (secondError) {
+                console.error('❌ Second attempt failed:', secondError.message)
+                console.log('ℹ️ The browser window may not support automatic popup opening.')
+                console.log('💡 User can manually click the extension icon to access the selected tool.')
+              }
+            } else {
+              console.error('❌ Unexpected error:', error.message)
+            }
+          }
+        })
+        .catch(error => {
+          console.error('❌ Failed to store tool ID:', error)
+        })
+      break
+    case 'GET_SELECTED_TOOL':
+      // Get and clear the selected tool ID
+      chrome.storage.local.get(['selectedToolId']).then(result => {
+        if (result.selectedToolId) {
+          // Clear it after retrieval so it doesn't persist
+          chrome.storage.local.remove(['selectedToolId'])
+          sendResponse({ toolId: result.selectedToolId })
+        } else {
+          sendResponse({ toolId: null })
+        }
+      })
+      break
   }
   return true // Keep the message channel open for async responses
 })
