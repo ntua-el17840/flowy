@@ -46,7 +46,29 @@
   },
   "manifest": {
     "host_permissions": [
-      "https://*/*"
-    ]
+      "https://*/*",
+      "https://clients1.google.com/*",
+      "https://ac.duckduckgo.com/*",
+      "https://api.bing.com/*"
+    ],
+    "permissions": [
+      "activeTab",
+      "storage",
+      "tabs"
+    ],
+    "commands": {
+      "open-web-search": {
+        "suggested_key": {
+          "default": "Ctrl+Space"
+        },
+        "description": "Open web search palette"
+      },
+      "open-tool-finder": {
+        "suggested_key": {
+          "default": "Ctrl+Shift+Space"
+        },
+        "description": "Open tool finder palette"
+      }
+    }
   }
 }

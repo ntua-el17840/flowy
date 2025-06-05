@@ -1,4 +1,3 @@
-import hotkeys from 'hotkeys-js'
 import { actionService, storageService, initializeSettings } from './lib/db'
 
 // Initialize database and sync
@@ -11,20 +10,32 @@ async function initialize() {
   }
 }
 
-// Initialize hotkeys
-hotkeys.filter = () => true // Allow hotkeys in all contexts
+// Send message to active tab
+async function sendMessageToActiveTab(message: any) {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+    if (tab?.id) {
+      await chrome.tabs.sendMessage(tab.id, message)
+    }
+  } catch (error) {
+    console.error('Failed to send message to active tab:', error)
+  }
+}
 
-// Web search palette shortcut
-hotkeys('ctrl+space', (event) => {
-  event.preventDefault()
-  chrome.runtime.sendMessage({ type: 'OPEN_WEB_SEARCH' })
-})
-
-// Tool finder palette shortcut
-hotkeys('ctrl+alt+space', (event) => {
-  event.preventDefault()
-  chrome.runtime.sendMessage({ type: 'OPEN_TOOL_FINDER' })
-})
+// Listen for command shortcuts
+if (chrome.commands && chrome.commands.onCommand) {
+  chrome.commands.onCommand.addListener((command) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        if (command === "open-web-search") {
+          chrome.tabs.sendMessage(tabs[0].id, { type: "OPEN_WEB_SEARCH" })
+        } else if (command === "open-tool-finder") {
+          chrome.tabs.sendMessage(tabs[0].id, { type: "OPEN_TOOL_FINDER" })
+        }
+      }
+    })
+  })
+}
 
 // Listen for messages from popup/options
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -44,7 +55,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'CREATE_SHORTCUT':
       actionService.create(message.payload)
         .then(() => storageService.syncToStorage())
-        .then(() => sendResponse({ success: true }))
         .catch(error => sendResponse({ success: false, error: error.message }))
       break
     case 'DELETE_SHORTCUT':
@@ -53,9 +63,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .then(() => sendResponse({ success: true }))
         .catch(error => sendResponse({ success: false, error: error.message }))
       break
+    case 'OPEN_TAB':
+      chrome.tabs.create({ url: message.url })
+      break
   }
   return true // Keep the message channel open for async responses
 })
 
 // Initialize when the extension starts
-initialize().catch(console.error) 
+initialize().catch(console.error)
+
+console.log('Background script loaded')
+
+export {} 

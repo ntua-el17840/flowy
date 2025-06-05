@@ -8,15 +8,23 @@ export interface Setting {
   updatedAt: Date;
 }
 
+interface Color {
+  id?: number;
+  value: string;
+  timestamp: number;
+}
+
 class FlowyDatabase extends Dexie {
   actions!: Table<Action>;
   settings!: Table<Setting>;
+  colors!: Table<Color>;
 
   constructor() {
     super('FlowyDB');
     this.version(1).stores({
       actions: '++id, name, shortcut, tags',
-      settings: '++id, key'
+      settings: '++id, key',
+      colors: '++id, value, timestamp'
     });
   }
 }

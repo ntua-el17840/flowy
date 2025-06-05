@@ -5,6 +5,7 @@ export interface SearchEngineConfig {
   name: string
   searchUrl: string
   suggestionUrl: string
+  headers?: Record<string, string>
 }
 
 export const SEARCH_ENGINES: Record<SearchEngine, SearchEngineConfig> = {
@@ -12,13 +13,16 @@ export const SEARCH_ENGINES: Record<SearchEngine, SearchEngineConfig> = {
     id: "google",
     name: "Google",
     searchUrl: "https://www.google.com/search",
-    suggestionUrl: "https://suggestqueries.google.com/complete/search?client=chrome&q="
+    suggestionUrl: "https://clients1.google.com/complete/search?client=firefox&q="
   },
   duckduckgo: {
     id: "duckduckgo",
     name: "DuckDuckGo",
     searchUrl: "https://duckduckgo.com/",
-    suggestionUrl: "https://ac.duckduckgo.com/ac/?q=&type=list"
+    suggestionUrl: "https://ac.duckduckgo.com/ac/?q=",
+    headers: {
+      'Accept': 'application/json'
+    }
   },
   bing: {
     id: "bing",

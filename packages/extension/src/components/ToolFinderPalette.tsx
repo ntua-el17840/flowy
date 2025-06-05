@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { CommandPalette } from "./CommandPalette"
 import { Action } from "../types/action"
 import Fuse from "fuse.js"
@@ -6,13 +6,13 @@ import Fuse from "fuse.js"
 interface ToolFinderPaletteProps {
   onClose: () => void
   actions: Action[]
+  isPopup?: boolean
 }
 
-export const ToolFinderPalette = ({ onClose, actions }: ToolFinderPaletteProps) => {
+export const ToolFinderPalette = ({ onClose, actions, isPopup = false }: ToolFinderPaletteProps) => {
   const [filteredActions, setFilteredActions] = useState<Action[]>(actions)
-  const [query, setQuery] = useState("")
 
-  useEffect(() => {
+  const handleQueryChange = useCallback((query: string) => {
     if (query.trim()) {
       const fuse = new Fuse(actions, {
         keys: ["name", "tags"],
@@ -24,24 +24,30 @@ export const ToolFinderPalette = ({ onClose, actions }: ToolFinderPaletteProps) 
     } else {
       setFilteredActions(actions)
     }
-  }, [query, actions])
+  }, [actions])
 
-  const handleSelect = async (action: Action) => {
+  const handleSelect = useCallback(async (action: Action) => {
     try {
-      await action.handler()
+      if (typeof action.handler === 'function') {
+        await action.handler()
+      } else {
+        console.log('Action handler not implemented:', action.name)
+      }
       onClose()
     } catch (error) {
       console.error(`Error executing action ${action.name}:`, error)
     }
-  }
+  }, [onClose])
 
   return (
     <CommandPalette
       items={filteredActions}
       onSelect={handleSelect}
+      onQueryChange={handleQueryChange}
       onClose={onClose}
       placeholder="Search tools..."
       mode="tool"
+      isPopup={isPopup}
     />
   )
 } 

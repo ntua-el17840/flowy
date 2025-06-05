@@ -1,4 +1,4 @@
-# flowy · Phase 0-2 ultra-granular checklist ( Vite + Plasmo + *type-ahead* additions )
+# flowy · Phase 0-3 ultra-granular checklist ( Extension + Web App )
 
 > Tick each box in order.  
 > Convention: `[ ]` = to-do `[x]` = done
@@ -77,16 +77,16 @@
 - [x] **Open-tab handler**
   - [x] On `Enter`, open new tab → `${engine.searchUrl}?q=${encodeURIComponent(choice)}`
   - [x] Fallback: open raw user text if no suggestion chosen
-- [ ] **Playwright tests**
-  - [ ] Stub fetch → return fixture suggestions
-  - [ ] Assert ↑/↓ cycles through list, `Enter` launches correct tab
+- [x] **Playwright tests**
+  - [x] Stub fetch → return fixture suggestions
+  - [x] Assert ↑/↓ cycles through list, `Enter` launches correct tab
 
 ### 1.4 — Tool-finder type-ahead
 - [x] Fuse search over Dexie `actions`
 - [x] Show top 6 actions as suggestions
 - [x] Selecting result executes action handler
-- [ ] **Regression tests**
-  - [ ] Simulate 30 random shortcuts, assert no browser collisions
+- [x] **Regression tests**
+  - [x] Simulate 30 random shortcuts, assert no browser collisions
 - [ ] **Perf gate**
   - [ ] p90 palette open < 120 ms (Intel i3)
 
@@ -95,9 +95,9 @@
 ## Phase 2 · Utility toolkit (Week 3 → 10)
 
 ### Colour Picker (Week 3)
-- [ ] Wrap native `window.EyeDropper`
+- [x] Wrap native `window.EyeDropper`
 - [ ] Fallback to `iro.js`
-- [ ] Save last 20 colours in Dexie
+- [x] Save last 20 colours in Dexie
 
 ### File → PDF (Week 4)
 - [ ] `pnpm add react-dropzone pdf-lib tesseract.js`
@@ -138,9 +138,70 @@
 
 ---
 
+## Phase 3 · Web App Development (Week 10 → 15)
+
+### 3.1 — Web App Setup (Week 10)
+- [ ] **Project Structure**
+  - [ ] Move common code to `@flowy/shared`
+  - [ ] Set up Vite + React in `@flowy/web`
+  - [ ] Configure Tailwind & dark mode
+  - [ ] Set up routing with `react-router-dom`
+
+### 3.2 — Authentication & User System (Week 11)
+- [ ] **Auth Flow**
+  - [ ] Implement OAuth with Google/GitHub
+  - [ ] JWT token management
+  - [ ] Protected routes
+- [ ] **User Profile**
+  - [ ] Profile settings page
+  - [ ] Extension sync preferences
+  - [ ] Usage statistics dashboard
+
+### 3.3 — Tool Integration (Week 12-13)
+- [ ] **Shared Components**
+  - [ ] Port extension tools to web components
+  - [ ] Implement file upload system
+  - [ ] Progress tracking & notifications
+- [ ] **Tool Features**
+  - [ ] Color picker with history
+  - [ ] PDF operations (merge/split/OCR)
+  - [ ] Image editing suite
+  - [ ] Video/audio processing
+  - [ ] Background removal
+  - [ ] Watermark removal
+
+### 3.4 — Web App Polish (Week 14)
+- [ ] **UI/UX**
+  - [ ] Responsive design for all tools
+  - [ ] Loading states & error handling
+  - [ ] Tooltips & onboarding
+- [ ] **Performance**
+  - [ ] Lazy loading for tools
+  - [ ] Image optimization
+  - [ ] Web worker integration
+
+### 3.5 — Web App Launch (Week 15)
+- [ ] **Deployment**
+  - [ ] Set up Vercel/Netlify
+  - [ ] Configure CI/CD
+  - [ ] SSL & security headers
+- [ ] **Analytics**
+  - [ ] User engagement tracking
+  - [ ] Error monitoring
+  - [ ] Performance metrics
+
+---
+
 ## Completion gates
 
+### Extension
 - [ ] p90 command-palette open < 120 ms
 - [ ] < 2 % unhandled errors in Sentry
 - [ ] ≥ 1 k daily tool invocations during beta
 - [ ] ≥ 60 % beta users launch ≥ 3 different tools
+
+### Web App
+- [ ] Lighthouse score > 90 for all metrics
+- [ ] < 1s Time to Interactive
+- [ ] ≥ 5 k monthly active users
+- [ ] ≥ 70 % user retention after 30 days
